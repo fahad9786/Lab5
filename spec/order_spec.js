@@ -1,4 +1,4 @@
-import { handleInput, clearInput, getOrder } from "./Order.js";
+import { handleInput, clearInput, getOrder } from "../Order.js";
 
 describe("Dar Medina Chatbot", function () {
 
