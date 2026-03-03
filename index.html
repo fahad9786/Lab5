@@ -1,14 +1,326 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dar Medina — Order by SMS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #1a0e08;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    /* Decorative header */
+    .app-header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .app-header h1 {
+      color: #e8b97a;
+      font-size: 1.6rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .app-header p {
+      color: #a07050;
+      font-size: 0.8rem;
+      letter-spacing: 0.15em;
+      margin-top: 4px;
+    }
+    .divider {
+      color: #c8852a;
+      font-size: 1.1rem;
+      letter-spacing: 0.3em;
+      margin-top: 6px;
+    }
+
+    /* Phone shell */
+    .phone {
+      width: 370px;
+      background: #111;
+      border-radius: 40px;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.7), inset 0 0 0 1px #333;
+      overflow: hidden;
+    }
+
+    /* Status bar */
+    .status-bar {
+      background: #111;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 24px 8px;
+      font-size: 0.72rem;
+      color: #ccc;
+      font-weight: 500;
+    }
+
+    /* Chat header */
+    .chat-header {
+      background: #1c1008;
+      border-bottom: 1px solid #2a1a08;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .chat-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #c8852a, #7a3e10);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+    }
+    .chat-header-info strong {
+      display: block;
+      color: #f0d5a0;
+      font-size: 0.95rem;
+    }
+    .chat-header-info span {
+      color: #4caf77;
+      font-size: 0.72rem;
+    }
+
+    /* Messages area */
+    .message-list {
+      list-style: none;
+      height: 420px;
+      overflow-y: auto;
+      padding: 16px 14px;
+      background: #0e0905;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      scroll-behavior: smooth;
+    }
+    .message-list::-webkit-scrollbar { width: 4px; }
+    .message-list::-webkit-scrollbar-thumb { background: #3a2010; border-radius: 4px; }
+
+    /* Bubble base */
+    .bubble {
+      max-width: 76%;
+      padding: 10px 14px;
+      border-radius: 18px;
+      font-size: 0.875rem;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+      animation: fadeUp 0.2s ease;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* User bubble (right) */
+    .bubble-user {
+      background: #c8852a;
+      color: #fff;
+      align-self: flex-end;
+      border-bottom-right-radius: 4px;
+    }
+
+    /* Bot bubble (left) */
+    .bubble-bot {
+      background: #1e1208;
+      color: #f0d5a0;
+      align-self: flex-start;
+      border: 1px solid #3a2010;
+      border-bottom-left-radius: 4px;
+    }
+
+    /* Timestamp label */
+    .bubble-time {
+      font-size: 0.65rem;
+      color: #6a4a28;
+      align-self: center;
+      margin: 2px 0;
+    }
+
+    /* Input area */
+    .chat-input {
+      background: #1c1008;
+      border-top: 1px solid #2a1a08;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .chat-input input {
+      flex: 1;
+      background: #0e0905;
+      border: 1px solid #3a2010;
+      border-radius: 22px;
+      padding: 10px 16px;
+      color: #f0d5a0;
+      font-size: 0.875rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .chat-input input::placeholder { color: #6a4a28; }
+    .chat-input input:focus { border-color: #c8852a; }
+
+    .send-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #c8852a;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s, transform 0.1s;
+      flex-shrink: 0;
+    }
+    .send-btn:hover  { background: #e09a40; }
+    .send-btn:active { transform: scale(0.93); }
+    .send-btn svg { fill: #fff; width: 18px; height: 18px; }
+
+    /* Typing indicator */
+    .typing {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      padding: 10px 14px;
+      background: #1e1208;
+      border: 1px solid #3a2010;
+      border-radius: 18px;
+      border-bottom-left-radius: 4px;
+      align-self: flex-start;
+      width: 54px;
+    }
+    .typing span {
+      width: 6px; height: 6px;
+      background: #c8852a;
+      border-radius: 50%;
+      animation: bounce 1.1s infinite ease-in-out;
+    }
+    .typing span:nth-child(2) { animation-delay: 0.18s; }
+    .typing span:nth-child(3) { animation-delay: 0.36s; }
+    @keyframes bounce {
+      0%, 60%, 100% { transform: translateY(0); }
+      30%           { transform: translateY(-5px); }
+    }
+  </style>
 </head>
 <body>
-    <x-markdown2html src="README.md"></x-markdown2html>
-    <script type="module" src="fab.js"></script>
-    <script type="module" src="chat.js"></script>
-    <script src="https://custom-element.pages.dev/custom-element.js" crossorigin="anonymous"></script>
+
+  <div class="app-header">
+    <p>✦ ✦ ✦</p>
+    <h1>Dar Medina</h1>
+    <p>Moroccan Kitchen • Toronto</p>
+    <div class="divider">❧</div>
+  </div>
+
+  <div class="phone">
+    <div class="status-bar">
+      <span>9:41</span>
+      <span>●●●●● WiFi 🔋</span>
+    </div>
+
+    <div class="chat-header">
+      <div class="chat-avatar">🌙</div>
+      <div class="chat-header-info">
+        <strong>Dar Medina</strong>
+        <span>● Online</span>
+      </div>
+    </div>
+
+    <ul class="message-list" id="messages"></ul>
+
+    <div class="chat-input">
+      <input type="text" id="textInput" placeholder="Type a message…" autocomplete="off" />
+      <button class="send-btn" id="sendBtn" title="Send">
+        <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { handleInput } from "./Order.js";
+
+    const messages = document.getElementById("messages");
+    const input    = document.getElementById("textInput");
+    const sendBtn  = document.getElementById("sendBtn");
+
+    function now() {
+      return new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    }
+
+    function addBubble(text, who) {
+      const li = document.createElement("li");
+      li.className = `bubble bubble-${who}`;
+      li.textContent = text;
+      messages.appendChild(li);
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    function addTime(label) {
+      const li = document.createElement("li");
+      li.className = "bubble-time";
+      li.textContent = label;
+      messages.appendChild(li);
+    }
+
+    function showTyping() {
+      const li = document.createElement("li");
+      li.className = "typing";
+      li.id = "typing-indicator";
+      li.innerHTML = "<span></span><span></span><span></span>";
+      messages.appendChild(li);
+      messages.scrollTop = messages.scrollHeight;
+      return li;
+    }
+
+    function removeTyping() {
+      const el = document.getElementById("typing-indicator");
+      if (el) el.remove();
+    }
+
+    function sendMessage() {
+      const text = input.value.trim();
+      input.value = "";
+      if (!text && messages.children.length > 0) return;
+
+      if (text) {
+        addBubble(text, "user");
+        addTime(now());
+      }
+
+      const typing = showTyping();
+      setTimeout(() => {
+        removeTyping();
+        const replies = handleInput(text);
+        replies.forEach((msg, i) => {
+          setTimeout(() => {
+            addBubble(msg, "bot");
+            if (i === replies.length - 1) addTime(now());
+          }, i * 300);
+        });
+      }, 600);
+    }
+
+    sendBtn.addEventListener("click", sendMessage);
+    input.addEventListener("keydown", e => { if (e.key === "Enter") sendMessage(); });
+
+    // Auto-greet
+    setTimeout(sendMessage, 500);
+  </script>
 </body>
 </html>

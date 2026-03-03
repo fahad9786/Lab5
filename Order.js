@@ -12,144 +12,103 @@ export function clearInput() {
   currentItem = {};
 }
 
+export function getOrder() {
+  return currentOrder;
+}
+
 function welcoming() {
-  let aReturn = [];
   currentState = choosingItem;
-  aReturn.push("Welcome to Dar Medina Moroccan Kitchen!");
-  aReturn.push("What would you like to order?");
-  aReturn.push("1) Chicken Tagine  2) Lamb Couscous");
-  return aReturn;
+  currentOrder = [];
+  currentItem = {};
+  return [
+    "🌙 Marhaba! Welcome to Dar Medina Moroccan Kitchen.",
+    "Our menu:\n1. Tagine\n2. Couscous\nWhat would you like? (type 'tagine' or 'couscous')"
+  ];
 }
 
 function choosingItem(sInput) {
-  let aReturn = [];
-  if (sInput.trim() === "1" || sInput.toLowerCase().includes("chicken")) {
-    currentItem.name = "Chicken Tagine";
-    currentState = choosingTagineSize;
-    aReturn.push("Great choice! What size would you like your Chicken Tagine?");
-    aReturn.push("Small / Medium / Large");
-  } else if (sInput.trim() === "2" || sInput.toLowerCase().includes("lamb")) {
-    currentItem.name = "Lamb Couscous";
-    currentState = choosingCouscousSize;
-    aReturn.push("Excellent! What size would you like your Lamb Couscous?");
-    aReturn.push("Small / Medium / Large");
-  } else {
-    aReturn.push("Sorry, I didn't catch that. Please choose:");
-    aReturn.push("1) Chicken Tagine  2) Lamb Couscous");
+  const input = sInput.toLowerCase().trim();
+  if (input.includes("tagine")) {
+    currentItem = { name: "Tagine" };
+    currentState = choosingSize;
+    return ["Great choice! 🏺", "What size?\n• Small ($14)\n• Large ($20)"];
+  } else if (input.includes("couscous")) {
+    currentItem = { name: "Couscous" };
+    currentState = choosingSize;
+    return ["Excellent! 🌿", "What size?\n• Small ($12)\n• Large ($18)"];
   }
-  return aReturn;
+  return ["Please type 'tagine' or 'couscous'."];
 }
 
-function choosingTagineSize(sInput) {
-  let aReturn = [];
-  const sSize = parseSize(sInput);
-  if (sSize) {
-    currentItem.size = sSize;
-    currentState = choosingSpice;
-    aReturn.push(`${sSize} Chicken Tagine — got it!`);
-    aReturn.push("What spice level would you like?");
-    aReturn.push("Mild / Medium / Spicy");
-  } else {
-    aReturn.push("Please choose a size: Small / Medium / Large");
+function choosingSize(sInput) {
+  const input = sInput.toLowerCase().trim();
+  if (input.includes("small")) {
+    currentItem.size = "Small";
+    currentItem.price = currentItem.name === "Tagine" ? 14 : 12;
+    currentState = choosingProtein;
+    return ["Small it is!", "Choose your protein:\n• Lamb 🐑\n• Chicken 🍗\n• Veggie 🥕"];
+  } else if (input.includes("large")) {
+    currentItem.size = "Large";
+    currentItem.price = currentItem.name === "Tagine" ? 20 : 18;
+    currentState = choosingProtein;
+    return ["Large — good appetite!", "Choose your protein:\n• Lamb 🐑\n• Chicken 🍗\n• Veggie 🥕"];
   }
-  return aReturn;
+  return ["Please type 'small' or 'large'."];
 }
 
-function choosingCouscousSize(sInput) {
-  let aReturn = [];
-  const sSize = parseSize(sInput);
-  if (sSize) {
-    currentItem.size = sSize;
-    currentState = choosingRaisins;
-    aReturn.push(`${sSize} Lamb Couscous — got it!`);
-    aReturn.push("Would you like to add raisins? Yes / No");
-  } else {
-    aReturn.push("Please choose a size: Small / Medium / Large");
-  }
-  return aReturn;
-}
-
-function choosingSpice(sInput) {
-  let aReturn = [];
-  const s = sInput.toLowerCase();
-  if (s.startsWith("mi")) {
-    currentItem.spice = "Mild";
-  } else if (s.startsWith("me")) {
-    currentItem.spice = "Medium";
-  } else if (s.startsWith("sp")) {
-    currentItem.spice = "Spicy";
-  } else {
-    aReturn.push("Please choose a spice level: Mild / Medium / Spicy");
-    return aReturn;
-  }
-  currentOrder.push({ ...currentItem });
-  currentItem = {};
-  currentState = addingAnother;
-  aReturn.push(`Added: ${currentOrder[currentOrder.length - 1].size} Chicken Tagine (${currentOrder[currentOrder.length - 1].spice})`);
-  aReturn.push("Would you like to add another item? Yes / No");
-  return aReturn;
-}
-
-function choosingRaisins(sInput) {
-  let aReturn = [];
-  const s = sInput.toLowerCase();
-  if (s.startsWith("y")) {
-    currentItem.raisins = "with raisins";
-  } else if (s.startsWith("n")) {
-    currentItem.raisins = "no raisins";
-  } else {
-    aReturn.push("Would you like to add raisins? Yes / No");
-    return aReturn;
-  }
-  currentOrder.push({ ...currentItem });
-  currentItem = {};
-  currentState = addingAnother;
-  aReturn.push(`Added: ${currentOrder[currentOrder.length - 1].size} Lamb Couscous (${currentOrder[currentOrder.length - 1].raisins})`);
-  aReturn.push("Would you like to add another item? Yes / No");
-  return aReturn;
-}
-
-function addingAnother(sInput) {
-  let aReturn = [];
-  if (sInput.toLowerCase().startsWith("y")) {
-    currentState = choosingItem;
-    aReturn.push("What else would you like?");
-    aReturn.push("1) Chicken Tagine  2) Lamb Couscous");
-  } else {
+function choosingProtein(sInput) {
+  const input = sInput.toLowerCase().trim();
+  const match = ["lamb", "chicken", "veggie"].find(p => input.includes(p));
+  if (match) {
+    currentItem.protein = match.charAt(0).toUpperCase() + match.slice(1);
+    currentOrder.push({ ...currentItem });
     currentState = upselling;
-    aReturn.push("Would you like to add a Mint Tea to your order? Yes / No");
+    return [
+      `${currentItem.protein} added! 🎉`,
+      "Would you like a drink?\n• Mint Tea 🍵 ($3)\n• Mango Lassi 🥭 ($4)\n• Water 💧 ($1)\n• No thanks"
+    ];
   }
-  return aReturn;
+  return ["Please type 'lamb', 'chicken', or 'veggie'."];
 }
 
 function upselling(sInput) {
+  const input = sInput.toLowerCase().trim();
   let aReturn = [];
-  if (sInput.toLowerCase().startsWith("y")) {
-    currentOrder.push({ name: "Mint Tea", size: "", spice: "", raisins: "" });
-    aReturn.push("Mint Tea added — a perfect finish!");
+  if (input.includes("mint") || input.includes("tea")) {
+    currentOrder.push({ name: "Mint Tea", size: "-", protein: "-", price: 3 });
+    aReturn.push("Mint tea — perfect pairing ☕");
+  } else if (input.includes("mango") || input.includes("lassi")) {
+    currentOrder.push({ name: "Mango Lassi", size: "-", protein: "-", price: 4 });
+    aReturn.push("Mango lassi — refreshing! 🥭");
+  } else if (input.includes("water")) {
+    currentOrder.push({ name: "Water", size: "-", protein: "-", price: 1 });
+    aReturn.push("Water, coming up 💧");
   } else {
-    aReturn.push("No problem!");
+    aReturn.push("No drink — no worries!");
   }
-  currentState = welcoming;
-  aReturn.push("Here is your order summary:");
-  currentOrder.forEach(function (item) {
-    if (item.name === "Mint Tea") {
-      aReturn.push("- Mint Tea");
-    } else if (item.name === "Chicken Tagine") {
-      aReturn.push(`- ${item.size} Chicken Tagine (${item.spice})`);
-    } else if (item.name === "Lamb Couscous") {
-      aReturn.push(`- ${item.size} Lamb Couscous (${item.raisins})`);
-    }
-  });
-  aReturn.push("Thank you for dining with Dar Medina Moroccan Kitchen! Shukran!");
-  currentOrder = [];
+  currentState = addingMore;
+  aReturn.push("Would you like to add another item? (yes / no)");
   return aReturn;
 }
 
-function parseSize(sInput) {
-  const s = sInput.toLowerCase();
-  if (s.startsWith("sm") || s === "s") return "Small";
-  if (s.startsWith("me") || s === "m") return "Medium";
-  if (s.startsWith("la") || s === "l") return "Large";
-  return null;
+function addingMore(sInput) {
+  const input = sInput.toLowerCase().trim();
+  if (input.startsWith("y")) {
+    currentItem = {};
+    currentState = choosingItem;
+    return [
+      "What else can we get you?",
+      "Our menu:\n1. Tagine\n2. Couscous\n(type 'tagine' or 'couscous')"
+    ];
+  }
+  const total = currentOrder.reduce((sum, item) => sum + item.price, 0);
+  const summary = currentOrder
+    .map(i => `• ${i.name}${i.size !== "-" ? ` (${i.size}, ${i.protein})` : ""} — $${i.price}`)
+    .join("\n");
+  currentState = welcoming;
+  currentOrder = [];
+  return [
+    `📋 Your order:\n${summary}`,
+    `💰 Total: $${total}\n\nShukran! Ready in ~25 mins. 🌙`
+  ];
 }
